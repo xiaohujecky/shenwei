@@ -15,19 +15,23 @@ def read2map(file_name):
         while(dline):
             itms=dline.strip().split(',')
             if len(itms) < 7 :
+                print('Data format wrong!')
                 dline=f.readline()
                 continue
             idx=0
-            for id in xrange(-2,15):
+            start_time = -200
+            for bin_id in xrange(-2,16):
                 # 起始位置在bin右边届以左，结束位置在bin左边界以右
                 # 即：该注视点在当前bin中
-                if int(itms[4]) < (id+1)*len_bin and \
-                   int(itms[5]) > (id+0)*len_bin :
+                end_time = start_time + len_bin
+                if int(itms[4]) < end_time and \
+                   int(itms[5]) > start_time :
                        bin_idx="%d"%idx
                        if bin_idx not in data_bin:
                            data_bin[bin_idx]=[itms]
                        else:
                            data_bin[bin_idx].append(itms)
+                start_time = end_time
                 idx+=1
             dline=f.readline()
     # for the bins:
@@ -38,13 +42,14 @@ def searchProportion(infile,outfile):
     fout=open(outfile,'w')
     print "bin,a,b,c,d,rest,rate_a,rate_b,rate_c,rate_d,rate_rest"
     fout.write("bin,a,b,c,d,rest,rate_a,rate_b,rate_c,rate_d,rate_rest\n")
-    for b in sorted(data_bin.keys()):
+    for b in sorted(data_bin.keys(), key=lambda x:int(x)):
         num_a = 0
         num_b = 0
         num_c = 0
         num_d = 0
         num_null = 0
         data=data_bin[b]
+        #print len(data)
         if len(data) <= 0 :
             print "%d,0,0,0,0,0,0.0,0.0,0.0,0.0,0.0\n"%(int(b)+1)
             continue
