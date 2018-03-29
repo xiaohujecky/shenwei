@@ -1,19 +1,19 @@
 function [mx tmx smx]=fixserial()
 [FileName,PathName] = uigetfile('*.xlsx','Select the excel-file');
 fprintf('Reading file %s ...\n',strcat(PathName,FileName));
-[NUM,TXT,RAW]=xlsread(strcat(PathName,FileName),'matlab');
+[NUM,TXT,RAW]=xlsread(strcat(PathName,FileName),'data');
 var=RAW(1,:);
 dat=RAW(2:end,:);
 
 %set range and bin
 bin=100;
-range=2:15;
+range=2;
 
 %set file name
-%fname_total = 'total2.xlsx';
+%fname_total = '1.xlsx';
 %fname_trial = 'trials.xlsx';
 %fname_sub = 'subs.xlsx';
-fname_mix = 'mix.xlsx';
+fname_mix = '3.xlsx';
 
 %search for mix data
 [mx]=searchProportionMix(dat(:,[1,4,5:7]),bin,range);
@@ -71,47 +71,54 @@ function [mx]=searchProportionMix(dat,bin,range)
 subs=unique(cell2mat(dat(:,1)));
 trials=unique(cell2mat(dat(:,2)));
 fprintf('Search for subjects and trials indexing...\n');
+sub_void_trail = 0;
 for i=1:length(range)
     fprintf('Bin : %d\n',i);
     for s=1:length(subs)
         for t=1:length(trials)
-            r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'a') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
-            row_id = i+(s-1)*length(trials)*length(range)+(t-1)*length(range);
-            mx(row_id,1)=length(r);
-            
-            r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'b') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
-            mx(row_id,2)=length(r);
-            
-            r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'c') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
-            mx(row_id,3)=length(r);
-            
-            r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'d') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
-            mx(row_id,4)=length(r);
-            
-            r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
-            mx(row_id,5)=length(r)-sum(mx(row_id,1:4));
-            
-            %第6列是subs的名字
-            mx(row_id,6)=subs(s);
-            
-            %第7列是trials的名字
-            mx(row_id,7)=trials(t);
+            sub_trial_len = find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2)) == trials(t));
+            if (length(sub_trial_len) > 0);
+                r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'a') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
+                row_id = i+(s-1)*length(trials)*length(range)+(t-1)*length(range) - sub_void_trail;
+                mx(row_id,1)=length(r);
+                
+                r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'b') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
+                mx(row_id,2)=length(r);
+                
+                r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'c') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
+                mx(row_id,3)=length(r);
+                
+                r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & strcmp(dat(:,5),'d') & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
+                mx(row_id,4)=length(r);
+                
+                r=find(cell2mat(dat(:,1))==subs(s) & cell2mat(dat(:,2))==trials(t) & cell2mat(dat(:,3))<(range(i)+1)*bin & cell2mat(dat(:,4))>range(i)*bin);
+                mx(row_id,5)=length(r)-sum(mx(row_id,1:4));
+                
+                %第6列是subs的名字
+                mx(row_id,6)=subs(s);
+                
+                %第7列是trials的名字
+                mx(row_id,7)=trials(t);
 
-            %第8列是bin id
-            mx(row_id,8)=i;
-            
-            %计算比例，1-5列的比例对应存放在9-13列
-            isum = mx(row_id,1)...
-                +mx(row_id,2)...
-                +mx(row_id,3)...
-                +mx(row_id,4)...
-                +mx(row_id,5);
-            
-            mx(row_id,9) = mx(row_id,1)/isum;
-            mx(row_id,10) = mx(row_id,2)/isum;
-            mx(row_id,11) = mx(row_id,3)/isum;
-            mx(row_id,12) = mx(row_id,4)/isum;
-            mx(row_id,13) = mx(row_id,5)/isum;
+                %第8列是bin id
+                mx(row_id,8)=i;
+                
+                %计算比例，1-5列的比例对应存放在9-13列
+                isum = mx(row_id,1)...
+                    +mx(row_id,2)...
+                    +mx(row_id,3)...
+                    +mx(row_id,4)...
+                    +mx(row_id,5);
+                
+                mx(row_id,9) = mx(row_id,1)/isum;
+                mx(row_id,10) = mx(row_id,2)/isum;
+                mx(row_id,11) = mx(row_id,3)/isum;
+                mx(row_id,12) = mx(row_id,4)/isum;
+                mx(row_id,13) = mx(row_id,5)/isum;
+            else
+                fprintf('Sub : %d have no %d trail.\n',subs(s),trials(t));
+                sub_void_trail = sub_void_trail + 1;
+            end
             
         end
     end
