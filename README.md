@@ -8,6 +8,10 @@
     ```
     data_transform.py
     random_b1b2.py
-    fixserial_clyp_final.py
+    fix_total_mix.py
     ```
     等程序
+    其中, fix_total_mix.py功能:
+    1. 去掉bin_range末尾的零值数据点;    
+    2. bin_range中间缺少的数据点填0;  
+    3. bin_range的数值改为了[bin_start, bin_end - 1];  
